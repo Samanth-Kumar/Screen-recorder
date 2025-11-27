@@ -1,0 +1,5 @@
+2025-11-27 19:52:00,845 Init upload: test_recording.webm
+2025-11-27 19:52:00,847 Padding missing: 3
+2025-11-27 19:52:00,928 Padding missing: 1
+2025-11-27 19:52:00,929 Write chunk failed: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+2025-11-27 19:52:00,929 Padding missing: 2

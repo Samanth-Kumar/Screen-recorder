@@ -1,0 +1,10 @@
+opencv-python
+numpy
+pyautogui
+Pillow
+mss
+pydub
+sounddevice
+soundfile
+PyQt5
+ffmpeg-python
