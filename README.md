@@ -9,58 +9,38 @@ A modern, feature-rich screen recorder built with Python and PyQt5.
 - **Specific Window** - Record a single application window
 - **Custom Region** - Select any area of your screen with visual selector
 
-### 🎬 **Recording Controls**
-- ⏺ Start/Stop Recording
-- ⏸ Pause/Resume
-- ⏱ Real-time timer display
-- Auto-minimize on recording start
+### 🎙️ **Audio & Video**
+- **Microphone Recording** - Record voiceover with your screen
+- **Webcam Overlay** - Add a facecam to your recordings (bottom-right)
+- **High Quality** - Support for 720p, 1080p (30/60 FPS), and 4K
 
-### ⚙️ **Quality Options**
-- 720p @ 30 FPS
-- 1080p @ 30 FPS
-- 1080p @ 60 FPS
-- 4K @ 30 FPS
+### ✂️ **Editing Tools**
+- **Video Trimming** - Built-in tool to trim your recordings
+- **Instant Preview** - Play recordings directly within the app
 
-### 📦 **Format Support**
-- MP4 (H.264)
-- AVI (XVID)
-- MKV (H.264)
-
-### ⌨️ **Global Hotkeys**
-- `Ctrl+Shift+R` - Start/Stop Recording
-- `Ctrl+Shift+P` - Pause/Resume
-- Works even when minimized!
-
-### 🖥️ **Multi-Monitor Support**
-- Record from any connected monitor
-- Automatic monitor detection
-
-### 🎨 **Modern UI**
-- Dark theme
-- Clean, intuitive interface
-- Recent recordings list with file sizes
-- Quick access to recordings folder
-- Visual region selector with confirmation
+### ⚙️ **Controls & Settings**
+- **Global Hotkeys** - Customizable hotkeys for Start/Stop and Pause/Resume
+- **Auto-Minimize** - Option to minimize app when recording starts
+- **Taskbar Icon** - Fully integrated with Windows taskbar
 
 ## 📁 Project Structure
 
 ```
 Screen recorder/
-├── recorder.py          # Main application
+├── recorder.py          # Main application source code
 ├── requirements.txt     # Python dependencies
-├── build.bat           # Build standalone executable
-├── run.bat             # Run from source
-├── README.md           # This file
-├── FluxRecorder.spec   # PyInstaller configuration
-└── dist/               # Built executables (after build)
-    └── FluxRecorder.exe
+├── icon.ico            # Application icon
+├── build.bat           # Script to build standalone executable
+├── run.bat             # Script to run from source
+├── README.md           # Documentation
+└── .gitignore          # Git configuration
 ```
 
 ## 🚀 Quick Start
 
 ### Option 1: Run from Source
 
-1. **Install Python 3.7+** (if not already installed)
+1. **Install Python 3.7+**
 
 2. **Install dependencies:**
 ```bash
@@ -69,130 +49,67 @@ pip install -r requirements.txt
 
 3. **Run the recorder:**
 ```bash
-run.bat
-```
-Or directly:
-```bash
 python recorder.py
 ```
 
 ### Option 2: Build Standalone Executable
 
-1. **Install dependencies** (if not done):
+1. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
+pip install pyinstaller
 ```
 
 2. **Build the executable:**
 ```bash
-build.bat
+pyinstaller --noconfirm --onefile --windowed --icon "icon.ico" --name "FluxRecorder" --add-data "icon.ico;." recorder.py
 ```
-
-3. **Run the executable:**
-   - Navigate to `dist` folder
-   - Double-click `FluxRecorder.exe`
-   - Or use `dist\FluxRecorder.exe`
+(Or use the provided `build.bat` if available)
 
 ## 📖 Usage Guide
 
-### Recording Full Monitor
-1. Select "Full Monitor" (default)
-2. Choose monitor if you have multiple displays
-3. Click "⏺ Start Recording"
-4. Click "⏹ Stop Recording" when done
+### 1. Select Recording Mode
+- **Monitor**: Choose which screen to record.
+- **Window**: Select a specific open window.
+- **Region**: Drag to select a custom area.
 
-### Recording Specific Window
-1. Select "Specific Window"
-2. Click "📌 Select Window"
-3. Choose the application window from the list
-4. Click "⏺ Start Recording"
+### 2. Configure Settings
+- **Quality**: Choose from 360p to 4K.
+- **Microphone**: Toggle to record audio.
+- **Webcam**: Toggle to show webcam overlay.
+- **Hotkeys**: Click the "Hotkeys" text to customize shortcuts.
 
-### Recording Custom Region
-1. Select "Custom Region"
-2. Click "✂️ Select Region"
-3. Main window minimizes automatically
-4. Click and drag to select the area
-5. Confirm or retry the selection
-6. Click "⏺ Start Recording"
-
-### Using Hotkeys
-- Press `Ctrl+Shift+R` to start/stop recording anytime
-- Press `Ctrl+Shift+P` to pause/resume during recording
-- Hotkeys work even when the app is minimized!
-
-## 💾 Recordings Location
-
-All recordings are automatically saved to:
-```
-C:\Users\<YourUsername>\Videos\FluxRecordings\
-```
-
-You can access this folder quickly using the "📁 Open Folder" button in the app.
+### 3. Record & Edit
+- Press **Start** or use Hotkey (`Ctrl+Shift+R` by default).
+- After recording, use the **Play (►)** button to watch.
+- Use the **Scissors (✂️)** button to trim the video.
 
 ## 🔧 Requirements
 
 - **OS**: Windows 10/11
-- **Python**: 3.7+ (for running from source)
-- **Dependencies**: See `requirements.txt`
-  - opencv-python
-  - numpy
-  - mss
-  - pillow
-  - PyQt5
-  - keyboard
-  - pywin32
+- **Python**: 3.7+
+- **Dependencies**:
+  - `PyQt5` (UI)
+  - `opencv-python` (Video processing)
+  - `mss` (Screen capture)
+  - `pyaudio` (Audio recording)
+  - `imageio-ffmpeg` (Video/Audio merging & trimming)
+  - `keyboard` (Global hotkeys)
+  - `pywin32` (Window management)
 
-## ⚠️ Troubleshooting
+## 🤝 Contributing
 
-### Application won't start
-- Make sure all dependencies are installed: `pip install -r requirements.txt`
-- Try running as administrator if hotkeys don't work
-
-### Recording is laggy
-- Try lowering the quality/FPS setting
-- Close other resource-intensive applications
-- Use a faster codec (try AVI instead of MP4)
-
-### Can't find recordings
-- Check: `C:\Users\<YourUsername>\Videos\FluxRecordings\`
-- Use the "📁 Open Folder" button in the app
-- Check the "Recent Recordings" list in the app
-
-### Region selector not visible
-- Make sure to click the "Custom Region" radio button first
-- The main window will minimize when selector appears
-- Look for a semi-transparent dark overlay on your screen
-
-### Hotkeys not working
-- Try running the application as administrator
-- Make sure no other application is using the same hotkey combination
-- Hotkeys: `Ctrl+Shift+R` and `Ctrl+Shift+P`
-
-### Video plays too fast/slow
-- This has been fixed in the latest version
-- If you still experience issues, try a different quality setting
-
-## 🎯 Tips & Tricks
-
-1. **Best Quality**: Use 1080p @ 60 FPS for smooth recordings
-2. **Smallest File Size**: Use 720p @ 30 FPS with AVI format
-3. **Quick Recording**: Use hotkeys to start/stop without switching windows
-4. **Region Recording**: Perfect for recording specific parts of applications
-5. **Window Recording**: Automatically follows the window even if you move it
+Contributions are welcome! We'd love to see your improvements.
+1. **Fork** the project
+2. Create your **Feature Branch** (`git checkout -b feature/AmazingFeature`)
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+5. Open a **Pull Request**
 
 ## 📝 License
 
-Free to use, no watermarks, open source.
-
-## 🙏 Credits
-
-Built with:
-- Python
-- PyQt5 (UI Framework)
-- OpenCV (Video Processing)
-- MSS (Screen Capture)
-- Keyboard (Global Hotkeys)
+Distributed under the **MIT License**. See `LICENSE` file for more information.
 
 ---
 
-**Enjoy recording! 🎬**
+**Built with 💙 by Samanth**

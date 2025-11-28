@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.spec
+dist/
+build/
+*.log
+*.wav
+*.mp4
+*.avi
+*.mkv
+.vscode/
+.idea/

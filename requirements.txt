@@ -4,6 +4,6 @@ mss
 pillow
 PyQt5
 pyaudio
-wave
 keyboard
 pywin32
+imageio-ffmpeg
