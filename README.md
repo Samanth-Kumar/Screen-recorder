@@ -66,6 +66,19 @@ pyinstaller --noconfirm --onefile --windowed --icon "icon.ico" --name "FluxRecor
 ```
 (Or use the provided `build.bat` if available)
 
+## ⚠️ Installation Note (Windows SmartScreen)
+
+When you run the `FluxRecorder.exe` for the first time, you might see a blue window saying **"Windows protected your PC"**.
+
+This happens because the application is not digitally signed (which requires a paid certificate). **It is safe to run.**
+
+To proceed:
+1. Click **"More info"**.
+2. Click **"Run anyway"**.
+
+This will only happen once.
+
+
 ## 📖 Usage Guide
 
 ### 1. Select Recording Mode
