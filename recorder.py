@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QComboBox, 
                              QFileDialog, QListWidget, QGroupBox, QMessageBox,
                              QStyle, QFrame, QRadioButton, QButtonGroup, QDialog,
-                             QListWidgetItem, QCheckBox, QKeySequenceEdit, QSlider)
+                             QListWidgetItem, QCheckBox, QKeySequenceEdit, QSlider, QTextEdit, QLineEdit)
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QRect
 from PyQt5.QtGui import QFont, QPalette, QColor, QIcon, QPainter, QPen, QPixmap, QKeySequence, QImage
 import os
@@ -23,8 +23,35 @@ import logging
 import ctypes
 
 # Setup logging
-logging.basicConfig(filename='recorder_debug.log', level=logging.DEBUG, 
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+if getattr(sys, 'frozen', False):
+    # In EXE mode, disable file logging or log only critical errors to console (which is hidden)
+    logging.basicConfig(level=logging.CRITICAL)
+else:
+    # In development, log to file
+    logging.basicConfig(filename='recorder_debug.log', level=logging.DEBUG, 
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+LICENSE_TEXT = """MIT License
+
+Copyright (c) 2025 Samanth
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
 
 
 
@@ -822,6 +849,69 @@ class VideoTrimmerDialog(QDialog):
         """)
 
 
+class LicenseDialog(QDialog):
+    """Dialog for displaying the license"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("License")
+        self.setMinimumSize(600, 450)
+        
+        layout = QVBoxLayout()
+        
+        # Title
+        title = QLabel("Flux Screen Recorder License")
+        title.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        title.setStyleSheet("color: #4A9EFF; margin-bottom: 10px;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+        
+        # License Text
+        text_edit = QTextEdit()
+        text_edit.setPlainText(LICENSE_TEXT)
+        text_edit.setReadOnly(True)
+        text_edit.setStyleSheet("""
+            QTextEdit {
+                background-color: #1E1E1E;
+                color: #E0E0E0;
+                border: 1px solid #333;
+                border-radius: 5px;
+                padding: 10px;
+                font-family: Consolas, monospace;
+                font-size: 12px;
+            }
+        """)
+        layout.addWidget(text_edit)
+        
+        # Close Button
+        btn_layout = QHBoxLayout()
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4A9EFF;
+                color: white;
+                border: none;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #3B7EDD; }
+        """)
+        
+        btn_layout.addStretch()
+        btn_layout.addWidget(close_btn)
+        layout.addLayout(btn_layout)
+        
+        self.setLayout(layout)
+        self.set_dark_theme()
+        
+    def set_dark_theme(self):
+        self.setStyleSheet("""
+            QDialog { background-color: #121212; color: #E0E0E0; }
+            QLabel { color: #E0E0E0; }
+        """)
+
+
 class ScreenRecorderApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -853,12 +943,21 @@ class ScreenRecorderApp(QMainWindow):
         self.init_ui()
         self.setup_hotkeys()
         
+    def resource_path(self, relative_path):
+        """ Get absolute path to resource, works for dev and for PyInstaller """
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_path, relative_path)
+
     def init_ui(self):
         self.setWindowTitle("Flux Screen Recorder")
         self.setGeometry(100, 100, 850, 700)
         
         # Set window icon
-        icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+        icon_path = self.resource_path("icon.ico")
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         
@@ -874,45 +973,81 @@ class ScreenRecorderApp(QMainWindow):
         main_layout.setSpacing(10)  # Reduced spacing
         main_layout.setContentsMargins(15, 15, 15, 15)  # Reduced margins
         
-        # Header with Icon
+
+        
+        # Header with Icon and License
         header_layout = QHBoxLayout()
-        header_layout.setAlignment(Qt.AlignCenter)
+        
+        # Left spacer
+        header_layout.addStretch()
+        
+        # Center content (Icon + Title)
+        center_container = QWidget()
+        center_layout = QHBoxLayout(center_container)
+        center_layout.setContentsMargins(0,0,0,0)
         
         # Icon
         icon_label = QLabel()
-        icon_pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "icon.png"))
+        icon_pixmap = QPixmap(self.resource_path("icon.png"))
         if not icon_pixmap.isNull():
             scaled_pixmap = icon_pixmap.scaled(35, 35, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             icon_label.setPixmap(scaled_pixmap)
-        header_layout.addWidget(icon_label)
+        center_layout.addWidget(icon_label)
         
         # Title
         title = QLabel("Flux Screen Recorder")
         title.setFont(QFont("Segoe UI", 20, QFont.Bold))  # Reduced font
         title.setStyleSheet("color: #4A9EFF; margin: 5px;")
-        header_layout.addWidget(title)
+        center_layout.addWidget(title)
         
-        main_layout.addLayout(header_layout)
+        header_layout.addWidget(center_container)
         
-        # Hotkey info (Clickable to change)
-        self.hotkey_btn = QPushButton(f"⌨️ Hotkeys: {self.hotkeys['start_stop'].upper()} (Record/Stop) | {self.hotkeys['pause_resume'].upper()} (Pause/Resume)")
-        self.hotkey_btn.setFont(QFont("Segoe UI", 9))
-        self.hotkey_btn.setCursor(Qt.PointingHandCursor)
-        self.hotkey_btn.setStyleSheet("""
+        # Right spacer
+        header_layout.addStretch()
+        
+        # License Button
+        license_btn = QPushButton("📜")
+        license_btn.setToolTip("View License")
+        license_btn.setFixedSize(30, 30)
+        license_btn.clicked.connect(self.show_license)
+        license_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                border: none;
                 color: #888;
-                margin-bottom: 5px;
+                border: 1px solid #333;
+                border-radius: 15px;
+                font-size: 14px;
             }
             QPushButton:hover {
                 color: #4A9EFF;
-                text-decoration: underline;
+                border-color: #4A9EFF;
+                background-color: #1E1E1E;
             }
         """)
-        self.hotkey_btn.setToolTip("Click to configure hotkeys")
-        self.hotkey_btn.clicked.connect(self.open_hotkey_settings)
-        main_layout.addWidget(self.hotkey_btn)
+        header_layout.addWidget(license_btn)
+        
+        # Settings Button
+        settings_btn = QPushButton("⚙️")
+        settings_btn.setToolTip("Configure Hotkeys")
+        settings_btn.setFixedSize(30, 30)
+        settings_btn.clicked.connect(self.open_hotkey_settings)
+        settings_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #888;
+                border: 1px solid #333;
+                border-radius: 15px;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                color: #4A9EFF;
+                border-color: #4A9EFF;
+                background-color: #1E1E1E;
+            }
+        """)
+        header_layout.addWidget(settings_btn)
+        
+        main_layout.addLayout(header_layout)
         
         
         # Recording Mode Group
@@ -1024,48 +1159,87 @@ class ScreenRecorderApp(QMainWindow):
         settings_group = QGroupBox("Recording Settings")
         settings_group.setStyleSheet(self.get_groupbox_style())
         settings_layout = QVBoxLayout()
-        settings_layout.setContentsMargins(10, 10, 10, 10)
-        settings_layout.setSpacing(5)
+        settings_layout.setContentsMargins(10, 15, 10, 10)
+        settings_layout.setSpacing(10)
         
-        # Quality selection
-        quality_layout = QHBoxLayout()
+        # Grid for dropdowns
+        from PyQt5.QtWidgets import QGridLayout
+        grid_layout = QGridLayout()
+        grid_layout.setSpacing(10)
+        
+        # Quality
         quality_label = QLabel("Quality:")
         quality_label.setFont(QFont("Segoe UI", 10))
         self.quality_combo = QComboBox()
         self.quality_combo.addItems(["360p (30 FPS)", "720p (30 FPS)", "1080p (30 FPS)", "1080p (60 FPS)", "4K (30 FPS)"])
         self.quality_combo.setCurrentIndex(2)  # Default to 1080p (30 FPS)
         self.quality_combo.setStyleSheet(self.get_combo_style())
-        quality_layout.addWidget(quality_label)
-        quality_layout.addWidget(self.quality_combo)
-        quality_layout.addStretch()
-        settings_layout.addLayout(quality_layout)
+        grid_layout.addWidget(quality_label, 0, 0)
+        grid_layout.addWidget(self.quality_combo, 0, 1)
         
-        # Format selection
-        format_layout = QHBoxLayout()
+        # Format
         format_label = QLabel("Format:")
         format_label.setFont(QFont("Segoe UI", 10))
         self.format_combo = QComboBox()
         self.format_combo.addItems(["MP4 (H.264)", "AVI (XVID)", "MKV (H.264)"])
         self.format_combo.setStyleSheet(self.get_combo_style())
-        format_layout.addWidget(format_label)
-        format_layout.addWidget(self.format_combo)
-        format_layout.addStretch()
-        settings_layout.addLayout(format_layout)
+        grid_layout.addWidget(format_label, 1, 0)
+        grid_layout.addWidget(self.format_combo, 1, 1)
         
-        # Monitor selection (only for monitor mode)
-        self.monitor_layout = QHBoxLayout()
-        monitor_label = QLabel("Monitor:")
-        monitor_label.setFont(QFont("Segoe UI", 10))
+        # Monitor (only for monitor mode)
+        self.monitor_label = QLabel("Monitor:")
+        self.monitor_label.setFont(QFont("Segoe UI", 10))
         self.monitor_combo = QComboBox()
         with mss.mss() as sct:
             for i in range(1, len(sct.monitors)):
                 mon = sct.monitors[i]
                 self.monitor_combo.addItem(f"Monitor {i} ({mon['width']}x{mon['height']})")
         self.monitor_combo.setStyleSheet(self.get_combo_style())
-        self.monitor_layout.addWidget(monitor_label)
-        self.monitor_layout.addWidget(self.monitor_combo)
-        self.monitor_layout.addStretch()
-        settings_layout.addLayout(self.monitor_layout)
+        grid_layout.addWidget(self.monitor_label, 2, 0)
+        grid_layout.addWidget(self.monitor_combo, 2, 1)
+        
+        # Save Location
+        save_loc_label = QLabel("Save to:")
+        save_loc_label.setFont(QFont("Segoe UI", 10))
+        
+        save_loc_layout = QHBoxLayout()
+        self.save_loc_input = QLineEdit(self.save_location)
+        self.save_loc_input.setReadOnly(True)
+        self.save_loc_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #1E1E1E;
+                border: 2px solid #333;
+                border-radius: 5px;
+                padding: 5px;
+                color: #888;
+                font-size: 11px;
+            }
+        """)
+        
+        browse_btn = QPushButton("📂")
+        browse_btn.setToolTip("Change Save Location")
+        browse_btn.setFixedSize(30, 30)
+        browse_btn.clicked.connect(self.change_save_location)
+        browse_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2A2A2A;
+                border: 2px solid #333;
+                border-radius: 5px;
+                color: #E0E0E0;
+            }
+            QPushButton:hover {
+                border-color: #4A9EFF;
+                background-color: #333;
+            }
+        """)
+        
+        save_loc_layout.addWidget(self.save_loc_input)
+        save_loc_layout.addWidget(browse_btn)
+        
+        grid_layout.addWidget(save_loc_label, 3, 0)
+        grid_layout.addLayout(save_loc_layout, 3, 1)
+        
+        settings_layout.addLayout(grid_layout)
         
         # Minimize checkbox
         self.minimize_checkbox = QCheckBox("🔽 Minimize window when recording starts")
@@ -1273,10 +1447,8 @@ class ScreenRecorderApp(QMainWindow):
         self.region_controls.setVisible(mode == "region")
         
         # Show/hide monitor selection
-        for i in range(self.monitor_layout.count()):
-            widget = self.monitor_layout.itemAt(i).widget()
-            if widget:
-                widget.setVisible(mode == "monitor")
+        self.monitor_label.setVisible(mode == "monitor")
+        self.monitor_combo.setVisible(mode == "monitor")
         
         # Auto-trigger selection dialogs
         if mode == "window":
@@ -1295,7 +1467,6 @@ class ScreenRecorderApp(QMainWindow):
                 QMessageBox.information(self, "Window Selected", f"Selected: {title}")
     
     def select_region(self):
-        print("DEBUG: select_region called")  # Debug
         # Minimize the main window to get it out of the way
         self.showMinimized()
         
@@ -1306,11 +1477,9 @@ class ScreenRecorderApp(QMainWindow):
         self.region_selector = RegionSelector()
         self.region_selector.region_selected.connect(self.on_region_selected)
         self.region_selector.selection_cancelled.connect(self.on_region_cancelled)
-        print("DEBUG: Showing selector...")  # Debug
         self.region_selector.show()
         self.region_selector.raise_()
         self.region_selector.activateWindow()
-        print("DEBUG: Selector shown")  # Debug
     
     def on_region_selected(self, region):
         # Restore the main window first
@@ -1369,9 +1538,7 @@ class ScreenRecorderApp(QMainWindow):
             keyboard.add_hotkey(self.hotkeys["start_stop"], self.toggle_recording)
             keyboard.add_hotkey(self.hotkeys["pause_resume"], self.toggle_pause)
             
-            # Update label if it exists
-            if hasattr(self, 'hotkey_btn'):
-                self.hotkey_btn.setText(f"⌨️ Hotkeys: {self.hotkeys['start_stop'].upper()} (Record/Stop) | {self.hotkeys['pause_resume'].upper()} (Pause/Resume)")
+
         except:
             pass  # Hotkeys might fail if not running as admin
     
@@ -1598,6 +1765,8 @@ class ScreenRecorderApp(QMainWindow):
         self.region_btn.setEnabled(False)
         
         # Minimize window if enabled
+    
+        # Minimize window if enabled
         if self.minimize_on_record:
             self.showMinimized()
     
@@ -1762,6 +1931,11 @@ class ScreenRecorderApp(QMainWindow):
     def on_recording_error(self, error_msg):
         QMessageBox.critical(self, "Error", f"Recording error: {error_msg}")
         self.stop_recording()
+
+    def show_license(self):
+        """Show the license dialog"""
+        dialog = LicenseDialog(self)
+        dialog.exec_()
     
     def refresh_recordings(self):
         # Clear existing widgets
@@ -1914,6 +2088,14 @@ class ScreenRecorderApp(QMainWindow):
             self.setup_hotkeys()
             QMessageBox.information(self, "Hotkeys Updated", "Hotkeys have been updated successfully!")
 
+    def change_save_location(self):
+        """Change the folder where recordings are saved"""
+        folder = QFileDialog.getExistingDirectory(self, "Select Save Folder", self.save_location)
+        if folder:
+            self.save_location = folder
+            self.save_loc_input.setText(folder)
+            self.refresh_recordings() # Refresh list to show files in new folder (if any)
+
     def open_recordings_folder(self):
         os.startfile(self.save_location)
     
@@ -1933,6 +2115,17 @@ def main():
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     except:
         pass
+
+    # Enforce executable name integrity
+    if getattr(sys, 'frozen', False):
+        executable_name = os.path.basename(sys.executable)
+        if executable_name.lower() != "fluxrecorder.exe":
+            app = QApplication(sys.argv)
+            QMessageBox.critical(None, "Integrity Error", 
+                "Application integrity check failed.\n\n"
+                "The executable name has been modified.\n"
+                "Please rename it back to 'FluxRecorder.exe' to run this application.")
+            sys.exit(1)
 
     app = QApplication(sys.argv)
     app.setStyle('Fusion')  # Modern look

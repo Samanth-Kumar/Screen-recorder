@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['src\\main.py'],
+    ['recorder.py'],
     pathex=[],
     binaries=[],
-    datas=[('src/index.html', '.'), ('src/css', 'css'), ('src/js', 'js')],
+    datas=[('icon.png', '.'), ('icon.ico', '.'), ('LICENSE', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='NONE',
+    version='version_info.txt',
+    icon=['icon.ico'],
 )
