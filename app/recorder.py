@@ -948,9 +948,13 @@ class ScreenRecorderApp(QMainWindow):
         try:
             # PyInstaller creates a temp folder and stores path in _MEIPASS
             base_path = sys._MEIPASS
+            return os.path.join(base_path, relative_path)
         except Exception:
+            # In dev, assets are in ../assets relative to this file
             base_path = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_path, relative_path)
+            project_root = os.path.dirname(base_path)
+            asset_path = os.path.join(project_root, "assets", relative_path)
+            return asset_path
 
     def init_ui(self):
         self.setWindowTitle("Flux Screen Recorder")
