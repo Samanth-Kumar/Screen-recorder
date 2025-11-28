@@ -2,6 +2,7 @@ import sys
 import os
 import shutil
 import winshell
+import pythoncom
 from win32com.client import Dispatch
 from PyQt5.QtWidgets import QApplication, QMessageBox, QWizard, QWizardPage, QLabel, QVBoxLayout, QProgressBar
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
@@ -17,6 +18,7 @@ class InstallThread(QThread):
         
     def run(self):
         try:
+            pythoncom.CoInitialize()
             # Create directory
             self.progress.emit(10)
             if not os.path.exists(self.install_dir):
@@ -48,6 +50,8 @@ class InstallThread(QThread):
             
         except Exception as e:
             self.error.emit(str(e))
+        finally:
+            pythoncom.CoUninitialize()
 
     def create_shortcuts(self):
         target = os.path.join(self.install_dir, "FluxRecorder.exe")
