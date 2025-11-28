@@ -71,8 +71,10 @@ def uninstall():
             f.write(f'rmdir /s /q "{install_dir}"\n') # Try to delete the whole install folder
             f.write("del \"%~f0\"\n") # Delete this batch file
             
-        # Launch batch file hidden
-        os.startfile(cleanup_bat)
+        import subprocess
+        # Launch batch file detached
+        # CREATE_NO_WINDOW = 0x08000000
+        subprocess.Popen([cleanup_bat], shell=True, creationflags=0x08000000)
         
         QMessageBox.information(None, "Uninstalled", "Flux Recorder has been successfully removed.")
         sys.exit()

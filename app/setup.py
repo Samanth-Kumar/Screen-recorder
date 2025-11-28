@@ -4,7 +4,7 @@ import shutil
 import winshell
 import pythoncom
 from win32com.client import Dispatch
-from PyQt5.QtWidgets import QApplication, QMessageBox, QWizard, QWizardPage, QLabel, QVBoxLayout, QProgressBar
+from PyQt5.QtWidgets import QApplication, QMessageBox, QWizard, QWizardPage, QLabel, QVBoxLayout, QProgressBar, QLineEdit, QPushButton, QHBoxLayout, QFileDialog
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 
 class InstallThread(QThread):
@@ -99,8 +99,33 @@ class InstallerWizard(QWizard):
         self.default_dir = os.path.join(os.environ['LOCALAPPDATA'], 'FluxRecorder')
         
         self.addPage(self.create_intro_page())
-        self.addPage(self.create_install_page())
+        self.dir_page_id = self.addPage(self.create_directory_page())
+        self.install_page_id = self.addPage(self.create_install_page())
         self.addPage(self.create_finish_page())
+        
+    def create_directory_page(self):
+        page = QWizardPage()
+        page.setTitle("Select Installation Folder")
+        page.setSubTitle("Where do you want to install Flux Recorder?")
+        
+        layout = QVBoxLayout()
+        
+        h_layout = QHBoxLayout()
+        self.dir_edit = QLineEdit(self.default_dir)
+        browse_btn = QPushButton("Browse...")
+        browse_btn.clicked.connect(self.browse_directory)
+        
+        h_layout.addWidget(self.dir_edit)
+        h_layout.addWidget(browse_btn)
+        
+        layout.addLayout(h_layout)
+        page.setLayout(layout)
+        return page
+
+    def browse_directory(self):
+        directory = QFileDialog.getExistingDirectory(self, "Select Install Folder", self.dir_edit.text())
+        if directory:
+            self.dir_edit.setText(directory)
         
     def create_intro_page(self):
         page = QWizardPage()
@@ -142,13 +167,14 @@ class InstallerWizard(QWizard):
         return page
 
     def initializePage(self, id):
-        if id == 1: # Install Page
+        if id == self.install_page_id: # Install Page
             # Disable Back button
             self.button(QWizard.BackButton).setEnabled(False)
             self.button(QWizard.NextButton).setEnabled(False)
             
             # Start Install
-            self.thread = InstallThread(self.default_dir)
+            install_dir = self.dir_edit.text()
+            self.thread = InstallThread(install_dir)
             self.thread.progress.connect(self.progress.setValue)
             self.thread.finished.connect(self.on_install_finished)
             self.thread.error.connect(self.on_install_error)
